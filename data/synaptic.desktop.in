@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=SynapticXBPS Package Manager
+GenericName=Package Manager
+Comment=Install, remove and upgrade software packages (XBPS / Void Linux)
+Exec=synaptic-xbps-pkexec
+Icon=synaptic
+Terminal=false
+Type=Application
+Categories=PackageManager;GTK;System;Settings;
+X-Ubuntu-Gettext-Domain=synaptic
+StartupNotify=true
+StartupWMClass=synaptic

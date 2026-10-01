@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/mvo5/synaptic/locale/es/LC_MESSAGES">
+    <file alias="synaptic.mo" compressed="true">synaptic-es.mo</file>
+  </gresource>
+</gresources>

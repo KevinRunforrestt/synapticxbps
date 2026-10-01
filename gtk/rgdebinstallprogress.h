@@ -1,0 +1,155 @@
+/* rgdebinstallprogress.h
+ *
+ * Copyright (c) 2004 Canonical
+ *
+ * Author: Michael Vogt <mvo@debian.org>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * USA
+ */
+
+#pragma once
+
+#include "config.h" // IWYU pragma: associated
+
+#ifdef WITH_DPKG_STATUSFD
+
+#   include "rggtkbuilderwindow.h"
+#   include "rinstallprogress.h"
+
+#   include <apt-pkg/packagemanager.h>
+#   include <gtk/gtk.h>
+#   include <map>
+#   include <optional>
+#   include <string>
+#   include <sys/types.h>
+#   include <vte/vte.h>
+
+class RGMainWindow;
+class RGUserDialog;
+class RPackageLister;
+
+class RGDebInstallProgress : public RInstallProgress, public RGGtkBuilderWindow
+{
+   typedef enum {
+      EDIT_COPY,
+      EDIT_SELECT_ALL,
+      EDIT_SELECT_NONE,
+   } TermAction;
+
+   // the various stages of dpkg
+   static const int NR_REMOVE_STAGES = 3;
+   static char *remove_stages[NR_REMOVE_STAGES];
+   static char *remove_stages_translations[NR_REMOVE_STAGES];
+
+   static const int NR_PURGE_STAGES = 4;
+   static char *purge_stages[NR_PURGE_STAGES];
+   static char *purge_stages_translations[NR_PURGE_STAGES];
+
+   // purge a already removed pkg
+   static const int NR_PURGE_ONLY_STAGES = 2;
+   static char *purge_only_stages[NR_PURGE_ONLY_STAGES];
+   static char *purge_only_stages_translations[NR_PURGE_ONLY_STAGES];
+
+   static const int NR_INSTALL_STAGES = 4;
+   static char *install_stages[NR_INSTALL_STAGES];
+   static char *install_stages_translations[NR_INSTALL_STAGES];
+
+   static const int NR_UPDATE_STAGES = 5;
+   static char *update_stages[NR_UPDATE_STAGES];
+   static char *update_stages_translations[NR_UPDATE_STAGES];
+
+   static const int NR_REINSTALL_STAGES = 6;
+   static char *reinstall_stages[NR_REINSTALL_STAGES];
+   static char *reinstall_stages_translations[NR_REINSTALL_STAGES];
+
+   // widgets
+   GtkWidget *_label_status;
+   GtkWidget *_labelSummary;
+
+   GtkWidget *_pbarTotal;
+   GtkWidget *_term;
+   GtkWidget *_autoClose; // checkbutton
+
+   GtkWidget *_popupMenu; // Popup menu of the terminal
+
+   bool _startCounting;
+
+   RGUserDialog *_userDialog;
+
+   int _progress;
+   int _totalActions;
+
+   // when the internal terminal timesout after no activity
+   int _terminalTimeout;
+
+   // this map contains the name and a pointer to the stages arrays
+   std::map<std::string, char **> _actionsMap;
+
+   // this map contains the name and a pointer to the translation arrays
+   std::map<std::string, char **> _translationsMap;
+
+   // this map contains what stage is already completted
+   std::map<std::string, int> _stagesMap;
+
+   // last time something changed
+   time_t last_term_action;
+
+   int master;
+   pkgPackageManager::OrderResult res;
+   bool child_has_exited;
+   static void child_exited(VteTerminal *vteterminal, gint ret, gpointer data);
+   static void terminalAction(GtkWidget *terminal, TermAction action);
+
+   GtkCssProvider *_cssProvider;
+
+ protected:
+   virtual void close() override;
+
+   virtual void prepare(RPackageLister *lister);
+
+   void conffile(gchar *conffile, gchar *status);
+
+   // gtk stuff
+   static void cbCancel(GtkWidget *self, void *data);
+   static void cbClose(GtkWidget *self, void *data);
+   static void content_changed(GObject *object, gpointer user_data);
+   static void expander_callback(GObject *object,
+                                 GParamSpec *param_spec,
+                                 gpointer user_data);
+   static gboolean key_press_event(GtkWidget *widget,
+                                   GdkEventKey *event,
+                                   gpointer user_data);
+   static gboolean cbTerminalClicked(GtkWidget *widget,
+                                     GdkEventButton *event,
+                                     gpointer user_data);
+   static void cbMenuitemClicked(GtkMenuItem *menuitem, gpointer user_data);
+
+ public:
+   RGDebInstallProgress(RGMainWindow *main, RPackageLister *lister);
+   virtual ~RGDebInstallProgress();
+
+   virtual std::optional<pkgPackageManager::OrderResult> start(
+      pkgPackageManager *pm,
+      int numPackages = 0,
+      int totalPackages = 0) override;
+   virtual std::optional<pkgPackageManager::OrderResult> poll() override;
+
+   virtual void startUpdate() override;
+   virtual void updateInterface() override;
+   virtual void finishUpdate() override;
+};
+
+#endif // WITH_DPKG_STATUSFD

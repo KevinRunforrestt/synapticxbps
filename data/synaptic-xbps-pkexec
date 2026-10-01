@@ -1,0 +1,12 @@
+#!/bin/sh
+# synaptic-xbps-pkexec — wrapper that elevates privileges for SynapticXBPS
+# using pkexec (preferred) or run0 (systemd 256+).
+if command -v pkexec >/dev/null 2>&1; then
+   exec pkexec "/usr/bin/synaptic-xbps" "$@"
+fi
+if command -v run0 >/dev/null 2>&1; then
+   set -- "/usr/bin/synaptic-xbps" "$@"
+   exec run0 "$@"
+fi
+echo "synaptic-xbps-pkexec: pkexec or run0 is required" >&2
+exit 1

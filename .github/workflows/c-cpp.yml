@@ -1,0 +1,39 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: update and install packages
+      run: |
+        sudo apt update
+        sudo apt build-dep -y ./
+        #Devscripts for bringing in debuild
+        sudo apt install meson ninja-build appstream desktop-file-utils libpolkit-gobject-1-dev devscripts -y
+
+    - name: configure
+      run: |
+        mkdir builddir
+        meson setup builddir
+    - name: build
+      run: |
+        meson compile -C builddir
+    - name: test
+      run: |
+        meson test -C builddir --print-errorlogs
+    - name: debuild
+      run: debuild -B -us -uc
+    - name: install deb
+      run: sudo apt install ../synaptic_*.deb
+    - name: remove deb
+      run: sudo apt remove synaptic
+# TODO ? add make check or distcheck?
