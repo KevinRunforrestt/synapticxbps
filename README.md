@@ -15,3 +15,18 @@ Tell me
 
 I don't know, try it yourself
 
+## Build instruccions
+
+```
+sudo xbps-install -S
+sudo xbps-install -y base-devel gcc gtk+3-devel meson ninja pkg-config gettext polkit-devel libvte3-devel
+```
+
+```
+meson setup build -Dxbps=enabled -Dtests=disabled
+
+ninja -C build
+
+# For installing
+sudo cp build/gtk/synaptic /usr/bin/synaptic-xbps
+```
